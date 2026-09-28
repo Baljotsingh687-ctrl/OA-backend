@@ -200,6 +200,24 @@ create table if not exists sync_log (
 );
 
 -- ============================================================
+-- 9. X-ray analyses (result of the hosted X-ray model for a patient's knee X-ray)
+-- ============================================================
+create table if not exists xray_analyses (
+  id uuid primary key default gen_random_uuid(),
+  patient_id uuid not null references patients(id) on delete cascade,
+  prediction text,
+  xray_score numeric,        -- 0-100, higher = more likely OA
+  model_version text,
+  raw_response jsonb,
+  filename text,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_xray_patient on xray_analyses(patient_id);
+
+-- risk_assessments gets an X-ray component (nullable: most patients won't have an X-ray)
+alter table risk_assessments add column if not exists xray_score numeric;
+
+-- ============================================================
 -- Access control
 -- Enforced in the Express API (src/middleware/auth.js + controllers):
 --   * any health worker (worker/officer/admin) can access every patient's data

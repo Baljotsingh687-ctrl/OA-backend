@@ -156,6 +156,15 @@ curl -X POST "$API/api/patients/$PATIENT_ID/gait-analysis" \
 |---|---|---|
 | POST | `/api/patients/:patientId/sensor-analysis` | Health-worker login. Body `{ "sensor_session_id": "<uuid>" }`. Sends that session's stored `sensor_readings` to the sensor model (`SENSOR_API_URL`) and saves the score on the session's `gait_features`; the next risk assessment uses it. Errors: `404` session not found, `422` no readings, `502/503/504` model service problems (the `detail` field carries the upstream message). |
 
+### X-ray analysis
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/patients/:patientId/xray-analysis` | Health-worker login. `multipart/form-data`, image in field **`image`**. Relays it to the X-ray model (`XRAY_API_URL`) and stores the result in `xray_analyses`. |
+| GET | `/api/patients/:patientId/xray-analysis` | Past X-ray results for the patient |
+
+Run `npm run migrate` once after updating: it adds the `xray_analyses` table and a `risk_assessments.xray_score` column.
+When a patient has an X-ray on file, the composite risk is a weighted blend (symptoms 35%, gait 30%, X-ray 35%, renormalised over whichever exist).
+
 ### Risk assessment
 | Method | Path | Notes |
 |---|---|---|

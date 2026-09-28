@@ -15,6 +15,7 @@ const assessmentsRoutes = require('./routes/assessments.routes');
 const sensorsRoutes = require('./routes/sensors.routes');
 const gaitRoutes = require('./routes/gait.routes');
 const sensorAnalysisRoutes = require('./routes/sensorAnalysis.routes');
+const xrayRoutes = require('./routes/xray.routes');
 const riskRoutes = require('./routes/risk.routes');
 const referralsRoutes = require('./routes/referrals.routes');
 const syncRoutes = require('./routes/sync.routes');
@@ -44,6 +45,7 @@ app.use('/api/patients/:patientId/assessments', assessmentsRoutes);
 app.use('/api/patients/:patientId/sensor-sessions', sensorsRoutes);
 app.use('/api/patients/:patientId/gait-analysis', gaitRoutes);
 app.use('/api/patients/:patientId/sensor-analysis', sensorAnalysisRoutes);
+app.use('/api/patients/:patientId/xray-analysis', xrayRoutes);
 app.use('/api/patients/:patientId/risk-assessment', riskRoutes);
 
 // flat/top-level resources

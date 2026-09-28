@@ -120,8 +120,9 @@ function tierAndRecommendation(compositeScore) {
  * Main entry point: computes a full risk assessment.
  * @param {object} symptomAssessment - row from symptom_assessments (may be null)
  * @param {object} gaitFeatures - row from gait_features (may be null if no sensor session)
+ * @param {number|null} xrayScore - 0-100 score from the X-ray model (null if no X-ray on file)
  */
-async function computeRiskAssessment(symptomAssessment, gaitFeatures) {
+async function computeRiskAssessment(symptomAssessment, gaitFeatures, xrayScore = null) {
   const symptomScore = symptomAssessment ? computeSymptomScore(symptomAssessment) : null;
 
   let gaitScore = null;
@@ -143,8 +144,19 @@ async function computeRiskAssessment(symptomAssessment, gaitFeatures) {
     }
   }
 
+  const hasXray = typeof xrayScore === 'number' && Number.isFinite(xrayScore);
   let composite;
-  if (symptomScore !== null && gaitScore !== null) {
+  if (hasXray) {
+    // With an X-ray: weighted blend of whatever components exist (weights renormalised over those present)
+    const parts = [
+      [symptomScore, 0.35],
+      [gaitScore, 0.3],
+      [round1(clamp(xrayScore, 0, 100)), 0.35],
+    ].filter(([v]) => v !== null);
+    const wsum = parts.reduce((a, [, w]) => a + w, 0);
+    composite = round1(parts.reduce((a, [v, w]) => a + v * w, 0) / wsum);
+    modelVersion = `${modelVersion}+xray`;
+  } else if (symptomScore !== null && gaitScore !== null) {
     composite = round1(symptomScore * 0.5 + gaitScore * 0.5);
   } else if (symptomScore !== null) {
     composite = symptomScore; // no sensor data available for this patient
@@ -159,6 +171,7 @@ async function computeRiskAssessment(symptomAssessment, gaitFeatures) {
   return {
     symptom_score: symptomScore,
     gait_score: gaitScore,
+    xray_score: hasXray ? round1(clamp(xrayScore, 0, 100)) : null,
     composite_score: composite,
     risk_tier,
     recommendation,

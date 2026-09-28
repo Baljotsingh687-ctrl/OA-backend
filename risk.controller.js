@@ -47,12 +47,19 @@ async function runRiskAssessment(req, res) {
     resolvedSensorSessionId = gaitFeatures ? gaitFeatures.sensor_session_id : null;
   }
 
-  const result = await computeRiskAssessment(symptomAssessment, gaitFeatures);
+  // Latest X-ray result for this patient, if any (see xray.controller.js)
+  const xr = await pool.query(
+    'select xray_score from xray_analyses where patient_id = $1 and xray_score is not null order by created_at desc limit 1',
+    [patientId]
+  );
+  const xrayScore = xr.rows.length ? Number(xr.rows[0].xray_score) : null;
+
+  const result = await computeRiskAssessment(symptomAssessment, gaitFeatures, xrayScore);
 
   const { rows } = await pool.query(
     `insert into risk_assessments
-       (patient_id, symptom_assessment_id, sensor_session_id, symptom_score, gait_score, composite_score, risk_tier, recommendation, model_version)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       (patient_id, symptom_assessment_id, sensor_session_id, symptom_score, gait_score, xray_score, composite_score, risk_tier, recommendation, model_version)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
      returning *`,
     [
       patientId,
@@ -60,6 +67,7 @@ async function runRiskAssessment(req, res) {
       resolvedSensorSessionId,
       result.symptom_score,
       result.gait_score,
+      result.xray_score,
       result.composite_score,
       result.risk_tier,
       result.recommendation,
