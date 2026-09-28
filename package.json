@@ -1,0 +1,29 @@
+{
+  "name": "oa-screening-backend",
+  "version": "1.0.0",
+  "description": "Backend API for the rural OA (osteoarthritis) early-screening hackathon project \u2014 patients, symptom assessments, gait/sensor data, offline sync, risk scoring, and district dashboard.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "migrate": "node db/run-migration.js",
+    "create-admin": "node db/create-admin.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.12.0",
+    "uuid": "^9.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
